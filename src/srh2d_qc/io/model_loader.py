@@ -2,7 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from srh2d_qc.core.model_types import SRH2DModel
-from srh2d_qc.io.parsers import (
+from srh2d_qc.io.parser import (
     parse_mesh,
     parse_srhgeom_mesh,
     parse_materials,
