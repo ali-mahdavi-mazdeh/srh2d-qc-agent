@@ -1,2 +1,3 @@
 # srh2d-qc-agent
-Hi
+
+A lightweight agentic AI tool for automated quality control of SRH‑2D hydraulic models.
