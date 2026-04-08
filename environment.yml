@@ -1,0 +1,13 @@
+name: hydro_agent
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - shapely
+  - h5py
+  - pyyaml
+  - pip
+  - pip:
+      - rich
+      - tabulate

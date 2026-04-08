@@ -1,0 +1,21 @@
+SRHHYDRO 30
+Case "Case01"
+Description "Backwater Curve-Case01"
+RunType FLOW
+ModelTemp OFF
+UnsteadyOutput UNSTEADY
+SimTime 0.0 1.0 15.0
+TurbulenceModel PARABOLIC
+ParabolicTurbulence 0.7
+InitCondOption DRY
+Grid "case01.srhgeom"
+HydroMat "case01.srhmat"
+OutputFormat XMDFC SI
+OutputOption 1
+OutputInterval 1.0
+ManningsN 0 0.01
+ManningsN 1 0.01
+BC 1 INLET-Q
+BC 2 EXIT-H
+IQParams 1 6.0 SI CONVEYANCE
+EWSParamsC 2 0.5 SI C
