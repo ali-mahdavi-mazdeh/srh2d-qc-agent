@@ -1,113 +1,114 @@
-from __future__ import annotations
 from pathlib import Path
+from srh2d_qc.core.bc_utils import find_bc_elements
+from srh2d_qc.io.parsers.mesh import parse_mesh
+from srh2d_qc.io.parsers.materials import parse_materials
+from srh2d_qc.io.parsers.run_config import parse_run_config
+from srh2d_qc.io.parsers.boundary_conditions.bcs_unified import parse_bcs_from_files
 
 from srh2d_qc.core.model_types import SRH2DModel
-from srh2d_qc.io.parser import (
-    parse_mesh,
-    parse_srhgeom_mesh,
-    parse_materials,
-    parse_bcs,
-    parse_run_config,
-)
+from typing import Union
 
-
-def load_model(model_dir: Path) -> SRH2DModel:
+def load_model(path: Union[str, Path]) -> SRH2DModel:
     """
-    Load an SRH-2D model from a directory.
+    Load an SRH-2D model using the .srhhydro file as the primary entry point.
 
-    This function orchestrates all parsing steps:
-      - Mesh:     .mesh or .srhgeom
-      - Materials: .mat or .srhgeom
-      - BCs:       .bc or .srhgeom
-      - Run config: .srhhydro
-
-    The function is intentionally minimal and QC-focused.
-    It does not validate the model; it only loads it.
-
-    Parameters
-    ----------
-    model_dir : Path
-        Directory containing SRH-2D input files.
-
-    Returns
-    -------
-    SRH2DModel
-        Fully assembled model object.
-
-    Raises
-    ------
-    FileNotFoundError
-        If required files are missing.
-    ValueError
-        If parsing fails or required content is missing.
+    Accepts either:
+      - a path to a .srhhydro file, or
+      - a directory containing exactly one .srhhydro file.
     """
+    path = Path(path)
 
-    model_dir = Path(model_dir)
-
-    # -------------------------
-    # 1. Mesh: try .mesh first, then .srhgeom
-    # -------------------------
-    mesh_file = model_dir / "model.mesh"
-    geom_file = model_dir / "model.srhgeom"
-
-    if mesh_file.exists():
-        mesh = parse_mesh(mesh_file)
-    elif geom_file.exists():
-        mesh = parse_srhgeom_mesh(geom_file)
+    # ---------------------------------------------------------
+    # 1. Resolve entry .srhhydro file and model directory
+    # ---------------------------------------------------------
+    if path.is_file() and path.suffix.lower() == ".srhhydro":
+        hydro_path = path
+        model_dir = path.parent
+    elif path.is_dir():
+        hydro_files = list(path.glob("*.srhhydro"))
+        if len(hydro_files) == 0:
+            raise FileNotFoundError(
+                f"No .srhhydro file found in {path}. "
+                "Expected a native SRH-2D model (e.g., case01.srhhydro)."
+            )
+        if len(hydro_files) > 1:
+            names = ", ".join(p.name for p in hydro_files)
+            raise ValueError(
+                f"Multiple .srhhydro files found in {path}: {names}. "
+                "Please specify which case to load by passing the .srhhydro file path."
+            )
+        hydro_path = hydro_files[0]
+        model_dir = path
     else:
         raise FileNotFoundError(
-            f"No mesh found in {model_dir}. Expected model.mesh or model.srhgeom."
+            f"{path} is neither a .srhhydro file nor a directory."
         )
 
-    # -------------------------
-    # 2. Materials: try .mat first, then .srhgeom
-    # -------------------------
-    mat_file = model_dir / "model.mat"
+    # ---------------------------------------------------------
+    # 2. Extract case prefix from .srhhydro filename
+    # ---------------------------------------------------------
+    prefix = hydro_path.stem  # e.g., 'case01' from 'case01.srhhydro'
 
-    if mat_file.exists():
-        materials = parse_materials(mat_file)
-    elif geom_file.exists():
-        materials = parse_materials(geom_file)
-    else:
+    geom_path = model_dir / f"{prefix}.srhgeom"
+    mat_path = model_dir / f"{prefix}.srhmat"
+
+    # ---------------------------------------------------------
+    # 3. Validate required files
+    # ---------------------------------------------------------
+    missing = []
+    if not geom_path.exists():
+        missing.append(geom_path.name)
+    if not mat_path.exists():
+        missing.append(mat_path.name)
+    if not hydro_path.exists():
+        missing.append(hydro_path.name)
+
+    if missing:
+        missing_str = ", ".join(missing)
         raise FileNotFoundError(
-            f"No material definitions found in {model_dir}. "
-            "Expected model.mat or MATERIAL block in model.srhgeom."
+            f"Missing required SRH-2D input files for case '{prefix}' in {model_dir}: {missing_str}"
         )
 
-    # -------------------------
-    # 3. Boundary Conditions: try .bc first, then .srhgeom
-    # -------------------------
-    bc_file = model_dir / "model.bc"
+    # ---------------------------------------------------------
+    # 4. Parse geometry, materials, run config, and BCs
+    # ---------------------------------------------------------
+    mesh = parse_mesh(geom_path)
 
-    if bc_file.exists():
-        bcs = parse_bcs(bc_file)
-    elif geom_file.exists():
-        bcs = parse_bcs(geom_file)
-    else:
-        raise FileNotFoundError(
-            f"No boundary conditions found in {model_dir}. "
-            "Expected model.bc or BOUNDARY blocks in model.srhgeom."
-        )
+    # Primary: native SRH-2D .srhmat
+    # (You can add a fallback to parse from .srhgeom if .srhmat is missing in SMS workflows.)
+    materials = parse_materials(mat_path)
 
-    # -------------------------
-    # 4. Run configuration: must have .srhhydro
-    # -------------------------
-    hydro_file = model_dir / "model.srhhydro"
+    elem_to_mat = materials["assignments"]
 
-    if not hydro_file.exists():
-        raise FileNotFoundError(
-            f"Run configuration file missing: {hydro_file}"
-        )
+    material_ids = [
+        elem_to_mat.get(eid, -1)   # default -1 if not assigned
+        for eid in mesh.element_ids
+    ]
 
-    run_config = parse_run_config(hydro_file)
+    mesh.material_ids = material_ids
 
-    # -------------------------
-    # 5. Assemble the full model
-    # -------------------------
-    return SRH2DModel(
+    run_config = parse_run_config(hydro_path)
+
+    # BCs: primary from .srhhydro, with optional fallbacks inside parse_bcs_from_files
+    bcs = parse_bcs_from_files(
+        geom_path=geom_path,
+        hydro_path=hydro_path,
+        model_dir=model_dir,
+    )
+
+    for bc in bcs:
+        if bc.nodes:
+            bc.elements = find_bc_elements(bc.nodes, mesh)
+
+    # ---------------------------------------------------------
+    # 5. Build SRH2DModel
+    # ---------------------------------------------------------
+    model = SRH2DModel(
         mesh=mesh,
         materials=materials,
         bcs=bcs,
         run_config=run_config,
         model_dir=model_dir,
     )
+
+    return model

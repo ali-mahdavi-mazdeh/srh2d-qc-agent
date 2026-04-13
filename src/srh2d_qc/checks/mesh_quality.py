@@ -1,45 +1,49 @@
 from __future__ import annotations
 import numpy as np
-from srh2d_qc.core.model_types import Mesh, MeshQualityResult
+from typing import List
+
+from srh2d_qc.core.model_types import (
+    Mesh,
+    MeshQualityElement,
+    MeshQualitySummary,
+    MeshQualityResult,
+)
 
 
-def compute_mesh_quality(mesh: Mesh) -> list[MeshQualityResult]:
+def compute_mesh_quality(mesh: Mesh) -> MeshQualityResult:
     """
-    Compute basic mesh quality metrics for each element:
-      - minimum internal angle (degrees)
-      - maximum internal angle (degrees)
+    Compute mesh quality metrics for each element:
+      - min/max internal angles
       - aspect ratio
       - skewness
       - area
 
-    Supports triangles and quads.
-
-    Parameters
-    ----------
-    mesh : Mesh
-        Parsed mesh object.
-
-    Returns
-    -------
-    list[MeshQualityResult]
-        One entry per element.
+    Returns:
+      MeshQualityResult(
+          per_element=[MeshQualityElement, ...],
+          summary=MeshQualitySummary(...)
+      )
     """
-
-    results: list[MeshQualityResult] = []
 
     nodes = mesh.nodes
     elements = mesh.elements
     elem_ids = mesh.element_ids
 
+    per_element: List[MeshQualityElement] = []
+
+    # ---------------------------------------------------------
+    # Compute per-element metrics
+    # ---------------------------------------------------------
     for eid, conn in zip(elem_ids, elements):
+
         # Remove padding (-1 for triangles)
         conn = conn[conn >= 0]
-        pts = nodes[conn]
+        pts = nodes[conn]  # shape (n, 2)
 
-        # Compute edge lengths
+        # Edge lengths
         edges = np.linalg.norm(np.roll(pts, -1, axis=0) - pts, axis=1)
 
-        # Compute internal angles
+        # Internal angles
         angles = _compute_internal_angles(pts)
 
         # Aspect ratio = longest edge / shortest edge
@@ -52,8 +56,8 @@ def compute_mesh_quality(mesh: Mesh) -> list[MeshQualityResult]:
         # Area
         area = _polygon_area(pts)
 
-        results.append(
-            MeshQualityResult(
+        per_element.append(
+            MeshQualityElement(
                 element_id=int(eid),
                 min_angle=float(angles.min()),
                 max_angle=float(angles.max()),
@@ -63,7 +67,30 @@ def compute_mesh_quality(mesh: Mesh) -> list[MeshQualityResult]:
             )
         )
 
-    return results
+    # ---------------------------------------------------------
+    # Compute summary statistics
+    # ---------------------------------------------------------
+    min_angles = [e.min_angle for e in per_element]
+    max_angles = [e.max_angle for e in per_element]
+    aspects = [e.aspect_ratio for e in per_element]
+    skews = [e.skewness for e in per_element]
+    areas = [e.area for e in per_element]
+
+    summary = MeshQualitySummary(
+        min_angle=min(min_angles),
+        max_angle=max(max_angles),
+        min_aspect_ratio=min(aspects),
+        max_aspect_ratio=max(aspects),
+        min_skewness=min(skews),
+        max_skewness=max(skews),
+        min_area=min(areas),
+        max_area=max(areas),
+    )
+
+    return MeshQualityResult(
+        per_element=per_element,
+        summary=summary
+    )
 
 
 # ------------------------------------------------------------
@@ -83,11 +110,9 @@ def _compute_internal_angles(pts: np.ndarray) -> np.ndarray:
         v1 = p_prev - p_curr
         v2 = p_next - p_curr
 
-        # Normalize
         v1 /= np.linalg.norm(v1)
         v2 /= np.linalg.norm(v2)
 
-        # Angle via dot product
         dot = np.clip(np.dot(v1, v2), -1.0, 1.0)
         angles[i] = np.degrees(np.arccos(dot))
 

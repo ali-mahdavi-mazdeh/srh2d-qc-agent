@@ -22,9 +22,9 @@ class Material:
 class BoundaryCondition:
     name: str
     bc_type: str
-    nodes: list[int] | None = None
-    elements: list[int] | None = None
-    timeseries: list[tuple[float, float]] | None = None
+    nodes: List[int] | None = None
+    elements: List[int] | None = None
+    timeseries: List[tuple[float, float]] | None = None
 
 @dataclass
 class RunConfig:
@@ -33,8 +33,11 @@ class RunConfig:
     output_interval: float
     solver: str | None = None
 
+# ---------------------------------------------------------
+# Per-element mesh quality metrics
+# ---------------------------------------------------------
 @dataclass
-class MeshQualityResult:
+class MeshQualityElement:
     element_id: int
     min_angle: float
     max_angle: float
@@ -42,15 +45,38 @@ class MeshQualityResult:
     skewness: float
     area: float
 
+
+# ---------------------------------------------------------
+# Global summary statistics for the entire mesh
+# ---------------------------------------------------------
+@dataclass
+class MeshQualitySummary:
+    min_angle: float
+    max_angle: float
+    min_aspect_ratio: float
+    max_aspect_ratio: float
+    min_skewness: float
+    max_skewness: float
+    min_area: float
+    max_area: float
+
+
+# ---------------------------------------------------------
+# Container returned by compute_mesh_quality()
+# ---------------------------------------------------------
+@dataclass
+class MeshQualityResult:
+    per_element: List[MeshQualityElement]
+    summary: MeshQualitySummary
 @dataclass
 class BCConsistencyResult:
     bc_name: str
-    issues: list[str]
+    issues: List[str]
 @dataclass
 class MaterialCoverageResult:
-    missing_material_ids: list[int]
-    unused_material_ids: list[int]
-    element_counts: dict[int, int]
+    missing_material_ids: List[int]
+    unused_material_ids: List[int]
+    element_counts: Dict[int, int]
 
 @dataclass
 class TimestepStabilityResult:
@@ -58,7 +84,7 @@ class TimestepStabilityResult:
     min_geom_dt: float
     median_geom_dt: float
     num_violations: int
-    violation_element_ids: list[int]
+    violation_element_ids: List[int]
 
 @dataclass
 class QCResults:

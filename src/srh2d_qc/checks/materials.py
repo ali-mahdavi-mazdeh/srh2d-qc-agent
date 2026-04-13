@@ -6,38 +6,38 @@ from srh2d_qc.core.model_types import SRH2DModel, MaterialCoverageResult
 
 def check_material_coverage(model: SRH2DModel) -> MaterialCoverageResult:
     """
-    Perform QC checks on SRH-2D material usage:
+    QC checks for SRH-2D material usage:
       - Elements referencing undefined materials
       - Materials defined but not used
       - Element counts per material
-
-    Parameters
-    ----------
-    model : SRH2DModel
-        Fully loaded model.
-
-    Returns
-    -------
-    MaterialCoverageResult
-        Summary of material usage and issues.
     """
 
     mesh = model.mesh
-    materials = model.materials  # dict[int, Material]
+    materials = model.materials
 
-    # Material IDs defined in the model
-    defined_ids = set(materials.keys())
+    # ---------------------------------------------------------
+    # 1. Material IDs defined in SRHMAT
+    # ---------------------------------------------------------
+    defined_ids = set(materials["names"].keys())
 
-    # Material IDs used by elements
+    # ---------------------------------------------------------
+    # 2. Material IDs used by elements
+    # ---------------------------------------------------------
     used_ids = set(int(mid) for mid in mesh.material_ids)
 
-    # 1. Missing materials (elements reference undefined IDs)
+    # ---------------------------------------------------------
+    # 3. Missing materials (elements reference undefined IDs)
+    # ---------------------------------------------------------
     missing = sorted(list(used_ids - defined_ids))
 
-    # 2. Unused materials (defined but not used)
+    # ---------------------------------------------------------
+    # 4. Unused materials (defined but not used)
+    # ---------------------------------------------------------
     unused = sorted(list(defined_ids - used_ids))
 
-    # 3. Element counts per material
+    # ---------------------------------------------------------
+    # 5. Element counts per material
+    # ---------------------------------------------------------
     counts = Counter(int(mid) for mid in mesh.material_ids)
 
     return MaterialCoverageResult(

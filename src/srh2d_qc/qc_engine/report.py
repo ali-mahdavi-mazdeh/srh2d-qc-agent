@@ -1,34 +1,25 @@
 from __future__ import annotations
-from pathlib import Path
 from srh2d_qc.core.model_types import QCResults
 
 
 def generate_markdown_report(results: QCResults) -> str:
     """
     Generate a human-readable Markdown QC report from QCResults.
-
-    Parameters
-    ----------
-    results : QCResults
-        Aggregated QC results from run_all_qc().
-
-    Returns
-    -------
-    str
-        Markdown-formatted QC report.
     """
 
     # ------------------------------------------------------------
     # Mesh Quality Summary
     # ------------------------------------------------------------
     mq = results.mesh_quality
-    min_angles = [r.min_angle for r in mq]
-    max_angles = [r.max_angle for r in mq]
-    aspect_ratios = [r.aspect_ratio for r in mq]
-    skewness = [r.skewness for r in mq]
-    areas = [r.area for r in mq]
 
-    mesh_section = f"""
+    if mq:
+        min_angles = [r.min_angle for r in mq]
+        max_angles = [r.max_angle for r in mq]
+        aspect_ratios = [r.aspect_ratio for r in mq]
+        skewness = [r.skewness for r in mq]
+        areas = [r.area for r in mq]
+
+        mesh_section = f"""
 # SRH‑2D QC Report
 
 ## Mesh Quality
@@ -40,6 +31,14 @@ def generate_markdown_report(results: QCResults) -> str:
 - Aspect ratio range: {min(aspect_ratios):.2f} – {max(aspect_ratios):.2f}
 - Skewness range: {min(skewness):.2f}° – {max(skewness):.2f}°
 - Area range: {min(areas):.4f} – {max(areas):.4f}
+"""
+    else:
+        mesh_section = """
+# SRH‑2D QC Report
+
+## Mesh Quality
+
+_No mesh elements found_
 """
 
     # ------------------------------------------------------------
@@ -54,7 +53,7 @@ def generate_markdown_report(results: QCResults) -> str:
             issues_text = "_No issues detected_"
 
         bc_section += f"""
-### {bc.bc_name}
+### BC {bc.bc_name}
 {issues_text}
 
 """
@@ -88,11 +87,10 @@ def generate_markdown_report(results: QCResults) -> str:
 - Minimum geometric DT: {ts.min_geom_dt:.4f} s
 - Median geometric DT: {ts.median_geom_dt:.4f} s
 - Violating elements: {ts.num_violations}
-
 """
 
     if ts.violation_element_ids:
-        timestep_section += "### Violating element IDs\n"
+        timestep_section += "\n### Violating element IDs\n"
         timestep_section += ", ".join(str(e) for e in ts.violation_element_ids[:50])
         if ts.num_violations > 50:
             timestep_section += f"\n… and {ts.num_violations - 50} more"
