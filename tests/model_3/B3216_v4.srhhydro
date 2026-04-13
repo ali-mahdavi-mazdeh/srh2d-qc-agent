@@ -1,0 +1,52 @@
+SRHHYDRO 30
+Case "100 Yr & 50 Yr Final"
+Description "100 Yr & 50 Yr Final"
+RunType FLOW
+ModelTemp OFF
+UnsteadyOutput UNSTEADY
+SimTime 0.0 0.2 6.0
+TurbulenceModel PARABOLIC
+ParabolicTurbulence 0.7
+InitCondOption DRY
+Grid "B3216_v4.srhgeom"
+HydroMat "B3216_v4.srhmat"
+MonitorPtFile "B3216_v4.srhmpoint"
+PressureDatasetFile "ceiling.srhceiling" 3 SRHCEILING
+OutputFormat XMDFC EN
+OutputOption 1
+OutputInterval 0.16666666666666666
+ManningsN 0 0.02
+ManningsN 1 0.022
+ManningsN 2 0.02
+ManningsN 3 0.025
+ManningsN 4 0.05
+ManningsN 5 0.025
+ManningsN 6 0.025
+ManningsN 7 0.03
+ManningsN 8 0.035
+ManningsN 9 0.025
+ManningsN 10 0.015
+ManningsN 11 0.01
+ManningsN 12 0.12
+BC 1 MONITORING
+BC 2 MONITORING
+BC 3 MONITORING
+BC 4 MONITORING
+BC 5 MONITORING
+BC 6 MONITORING
+BC 7 MONITORING
+BC 8 MONITORING
+BC 9 MONITORING
+BC 10 MONITORING
+BC 11 MONITORING
+BC 12 INLET-Q
+BC 13 INLET-Q
+BC 14 EXIT-H
+BC 15 LINK
+BC 16 LINK
+IQParams 12 "curve_1.xys" EN CONVEYANCE
+IQParams 13 "curve_2.xys" EN CONVEYANCE
+EWSParamsC 14 4374.166287546979 EN C
+LinkNodestrings 1 15 16
+LinkFlowType2 1 WEIR 4407.86 118.7 EN PAVED
+LinkLagTimeParameters 1 0.0
