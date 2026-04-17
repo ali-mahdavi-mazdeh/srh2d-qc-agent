@@ -13,24 +13,21 @@ def generate_markdown_report(results: QCResults) -> str:
     mq = results.mesh_quality
 
     if mq:
-        min_angles = [r.min_angle for r in mq]
-        max_angles = [r.max_angle for r in mq]
-        aspect_ratios = [r.aspect_ratio for r in mq]
-        skewness = [r.skewness for r in mq]
-        areas = [r.area for r in mq]
+        s = mq.summary
+        elems = mq.per_element
 
         mesh_section = f"""
 # SRH‑2D QC Report
 
 ## Mesh Quality
 
-**Elements:** {len(mq)}
+**Elements:** {len(elems)}
 
-- Min angle range: {min(min_angles):.2f}° – {max(min_angles):.2f}°
-- Max angle range: {min(max_angles):.2f}° – {max(max_angles):.2f}°
-- Aspect ratio range: {min(aspect_ratios):.2f} – {max(aspect_ratios):.2f}
-- Skewness range: {min(skewness):.2f}° – {max(skewness):.2f}°
-- Area range: {min(areas):.4f} – {max(areas):.4f}
+- Min angle range: {s.min_angle:.2f}° – {s.max_angle:.2f}°
+- Max angle range: {s.min_angle:.2f}° – {s.max_angle:.2f}°
+- Aspect ratio range: {s.min_aspect_ratio:.2f} – {s.max_aspect_ratio:.2f}
+- Skewness range: {s.min_skewness:.2f}° – {s.max_skewness:.2f}°
+- Area range: {s.min_area:.4f} – {s.max_area:.4f}
 """
     else:
         mesh_section = """

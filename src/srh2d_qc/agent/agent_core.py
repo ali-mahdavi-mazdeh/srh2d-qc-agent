@@ -21,8 +21,9 @@ class SRH2D_QCAgent:
       - maintain agent history
     """
 
-    def __init__(self, model_dir: Path):
+    def __init__(self, model_dir: Path, llm_reasoner=None):
         self.state = AgentState(model_dir=model_dir)
+        self.llm_reasoner = llm_reasoner
         self.state.log(f"Agent initialized for model: {model_dir}")
 
     # ---------------------------------------------------------
@@ -63,10 +64,12 @@ class SRH2D_QCAgent:
         issues = []
 
         # Mesh quality issues
-        if r.mesh_quality.max_aspect_ratio > 10:
+        mq = r.mesh_quality.summary
+
+        if mq.max_aspect_ratio > 10:
             issues.append("High aspect ratio elements detected.")
 
-        if r.mesh_quality.min_angle < 20:
+        if mq.min_angle < 20:
             issues.append("Very small angles detected in mesh.")
 
         # Material issues
@@ -98,26 +101,78 @@ class SRH2D_QCAgent:
     # ---------------------------------------------------------
     def propose_actions(self) -> List[str]:
         """
-        Convert issues into high-level actions the agent *could* take.
+        Convert QC results into high-level actions the agent *could* take.
         These are not applied yet — just proposed.
         """
         actions = []
+        qc = self.state.qc_results
 
-        for issue in self.state.detected_issues:
-            if "Missing material IDs" in issue:
-                actions.append("Assign all unassigned elements to material 1.")
+        # ------------------------------------------------------------
+        # Material coverage
+        # ------------------------------------------------------------
+        if qc.material_coverage.missing_material_ids:
+            actions.append("Assign default material to elements with missing material IDs.")
 
-            if "Timestep too large" in issue:
-                actions.append("Reduce dt to recommended geometric dt.")
+        # ------------------------------------------------------------
+        # Timestep stability
+        # ------------------------------------------------------------
+        if qc.timestep_stability.num_violations > 0:
+            actions.append("Reduce dt to recommended geometric dt.")
 
-            if "Boundary condition" in issue:
-                actions.append("Inspect and correct BC node assignments.")
+        # ------------------------------------------------------------
+        # Boundary condition consistency
+        # ------------------------------------------------------------
+        for bc in qc.bc_consistency:
+            if bc.issues:
+                actions.append(f"Inspect and correct BC node assignments for BC '{bc.bc_name}'.")
 
-            if "aspect ratio" in issue:
-                actions.append("Refine or smooth mesh in problematic regions.")
+        # ------------------------------------------------------------
+        # Mesh quality
+        # ------------------------------------------------------------
+        mq = qc.mesh_quality
+        if mq and mq.summary.max_aspect_ratio > 10:  # threshold can be tuned
+            actions.append("Refine or smooth mesh in high aspect-ratio regions.")
 
+        # ------------------------------------------------------------
+        # Log and store actions
+        # ------------------------------------------------------------
         for action in actions:
             self.state.add_action(action)
 
         self.state.log(f"Proposed {len(actions)} actions.")
         return actions
+
+    def llm_analyze(self):
+        """
+        Run LLM reasoning on QC results + proposed actions.
+        """
+        if self.llm_reasoner is None:
+            self.state.log("No LLM reasoner attached; skipping LLM analysis.")
+            return None
+
+        qc = self.state.qc_results
+        actions = self.propose_actions()
+
+        rec = self.llm_reasoner.analyze_qc(qc, actions)
+        self.state.log("LLM analysis completed.")
+        self.state.llm_summary = rec.summary
+        self.state.llm_prioritized_actions = rec.prioritized_actions
+        self.state.llm_notes = rec.notes
+        return rec
+
+    def apply_fixes(self):
+        """
+        Apply simple deterministic fixes:
+        - Assign default material to elements with missing material IDs
+        """
+        from srh2d_qc.utils.material_utils import fix_missing_materials
+
+        applied = False
+
+        # Fix missing materials
+        if self.state.qc_results.material_coverage.missing_material_ids:
+            if fix_missing_materials(self.state.model):
+                self.state.log("Assigned default material to missing elements.")
+                applied = True
+
+        return applied

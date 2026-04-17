@@ -26,7 +26,7 @@ def check_bc_consistency(mesh, bcs) -> List[BCConsistencyResult]:
     # Track node usage to detect overlaps
     node_usage = {}
 
-    mesh_node_ids = set(mesh.nodes.keys())
+    mesh_node_ids = set(mesh.node_ids)
 
     for bc in bcs:
         issues = []
@@ -75,27 +75,32 @@ def check_bc_consistency(mesh, bcs) -> List[BCConsistencyResult]:
 # ------------------------------------------------------------
 # Helper: find boundary nodes
 # ------------------------------------------------------------
-
+# todo it is not a good way to check the boundary nodes. becasue the the nodes at start and end of element does not mean boundary.
 def _find_boundary_nodes(mesh) -> Set[int]:
     """
     Identify boundary nodes by finding edges used by only one element.
+    Returns ORIGINAL SRH-2D node IDs.
     """
 
-    boundary_nodes = set()
     edge_count = {}
 
-    # mesh.elements is a list of connectivity lists
+    # mesh.elements contains node indices (0..N-1)
     for conn in mesh.elements:
-        # conn is already a list of node IDs
+        conn = [n for n in conn if n >= 0]
         for i in range(len(conn)):
-            n1 = conn[i]
-            n2 = conn[(i + 1) % len(conn)]
-            edge = tuple(sorted((n1, n2)))
+            i1 = conn[i]
+            i2 = conn[(i + 1) % len(conn)]
+            edge = tuple(sorted((i1, i2)))
             edge_count[edge] = edge_count.get(edge, 0) + 1
 
-    for (n1, n2), count in edge_count.items():
-        if count == 1:  # boundary edge
-            boundary_nodes.add(n1)
-            boundary_nodes.add(n2)
+    # boundary node indices
+    boundary_indices = set()
+    for (i1, i2), count in edge_count.items():
+        if count == 1:
+            boundary_indices.add(i1)
+            boundary_indices.add(i2)
 
-    return boundary_nodes
+    # map indices → original SRH-2D node IDs
+    boundary_node_ids = {int(mesh.node_ids[i]) for i in boundary_indices}
+
+    return boundary_node_ids

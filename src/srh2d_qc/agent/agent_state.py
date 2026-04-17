@@ -2,9 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
-
-from srh2d_qc.core.model_types import SRH2DModel
-from srh2d_qc.core.model_types import QCResults
+from srh2d_qc.core.model_types import SRH2DModel, QCResults
 
 
 @dataclass
@@ -18,6 +16,7 @@ class AgentState:
       - analyzes issues
       - proposes and applies fixes
       - re-runs QC
+      - performs LLM reasoning
     """
 
     model_dir: Path
@@ -33,6 +32,16 @@ class AgentState:
     # Simple text history of what the agent has done/decided
     history: List[str] = field(default_factory=list)
 
+    # ------------------------------------------------------------------
+    # LLM reasoning layer output
+    # ------------------------------------------------------------------
+    llm_summary: Optional[str] = None
+    llm_prioritized_actions: List[str] = field(default_factory=list)
+    llm_notes: Optional[str] = None
+
+    # ------------------------------------------------------------------
+    # Helper methods
+    # ------------------------------------------------------------------
     def log(self, message: str) -> None:
         """Append a message to the agent's history."""
         self.history.append(message)

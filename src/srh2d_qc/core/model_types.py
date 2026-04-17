@@ -7,10 +7,18 @@ from pathlib import Path
 
 @dataclass
 class Mesh:
-    nodes: np.ndarray          # (N, 2) float64
-    elements: np.ndarray       # (M, 3 or 4) int64
-    element_ids: np.ndarray    # (M,) int64
-    material_ids: np.ndarray   # (M,) int64
+    nodes: np.ndarray          # shape (N, 2)
+    node_ids: np.ndarray       # shape (N,) original SRH-2D node IDs
+    elements: np.ndarray       # shape (M, 4)
+    element_ids: np.ndarray    # shape (M,)
+    material_ids: np.ndarray   # shape (M,)
+
+    def get_element_nodes(self, eid):
+        idx = np.where(self.element_ids == eid)[0][0]
+        node_indices = self.elements[idx]
+        node_ids = self.node_ids[node_indices]
+        coords = self.nodes[node_indices]
+        return node_ids, coords
 
 @dataclass
 class Material:
