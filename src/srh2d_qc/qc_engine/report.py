@@ -2,9 +2,10 @@ from __future__ import annotations
 from srh2d_qc.core.model_types import QCResults
 
 
-def generate_markdown_report(results: QCResults) -> str:
+def generate_markdown_report(results: QCResults, state=None) -> str:
     """
     Generate a human-readable Markdown QC report from QCResults.
+    Optionally includes LLM review sections if `state` is provided.
     """
 
     # ------------------------------------------------------------
@@ -93,6 +94,39 @@ _No mesh elements found_
             timestep_section += f"\n… and {ts.num_violations - 50} more"
 
     # ------------------------------------------------------------
+    # LLM REVIEW SECTIONS (optional)
+    # ------------------------------------------------------------
+    llm_section = ""
+    if state and (state.llm_summary or state.llm_prioritized_actions or state.llm_notes):
+        llm_section += "\n---\n"
+        llm_section += "## LLM Review Summary\n"
+
+        # Summary
+        if state.llm_summary:
+            if isinstance(state.llm_summary, list):
+                for item in state.llm_summary:
+                    llm_section += f"- {item}\n"
+            else:
+                llm_section += f"{state.llm_summary}\n"
+        else:
+            llm_section += "_No LLM summary available._\n"
+
+        # Prioritized actions
+        llm_section += "\n## LLM Prioritized Actions\n"
+        if state.llm_prioritized_actions:
+            for action in state.llm_prioritized_actions:
+                llm_section += f"- {action}\n"
+        else:
+            llm_section += "_No prioritized actions available._\n"
+
+        # Notes
+        llm_section += "\n## LLM Notes\n"
+        if state.llm_notes:
+            llm_section += f"{state.llm_notes}\n"
+        else:
+            llm_section += "_No LLM notes available._\n"
+
+    # ------------------------------------------------------------
     # Combine all sections
     # ------------------------------------------------------------
     return (
@@ -103,4 +137,6 @@ _No mesh elements found_
         + material_section
         + "\n"
         + timestep_section
+        + "\n"
+        + llm_section
     )

@@ -18,7 +18,7 @@ def check_material_coverage(model: SRH2DModel) -> MaterialCoverageResult:
     # ---------------------------------------------------------
     # 1. Material IDs defined in SRHMAT
     # ---------------------------------------------------------
-    defined_ids = set(materials["names"].keys())
+    defined_ids = set(materials.keys())
 
     # ---------------------------------------------------------
     # 2. Material IDs used by elements

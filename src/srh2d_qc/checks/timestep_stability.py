@@ -14,7 +14,7 @@ def check_timestep_stability(model: SRH2DModel) -> TimestepStabilityResult:
     """
 
     g = 9.81
-    dt = model.run_config["dt"]   # new run_config structure
+    dt = model.run_config.dt   # RunConfig is now a dataclass
 
     mesh = model.mesh
     nodes = mesh.nodes            # dict: {node_id: (x,y)}

@@ -5,7 +5,7 @@ from srh2d_qc.io.parsers.materials import parse_materials
 from srh2d_qc.io.parsers.run_config import parse_run_config
 from srh2d_qc.io.parsers.boundary_conditions.bcs_unified import parse_bcs_from_files
 
-from srh2d_qc.core.model_types import SRH2DModel
+from srh2d_qc.core.model_types import SRH2DModel, RunConfig
 from typing import Union
 
 def load_model(path: Union[str, Path]) -> SRH2DModel:
@@ -76,18 +76,24 @@ def load_model(path: Union[str, Path]) -> SRH2DModel:
 
     # Primary: native SRH-2D .srhmat
     # (You can add a fallback to parse from .srhgeom if .srhmat is missing in SMS workflows.)
-    materials = parse_materials(mat_path)
-
-    elem_to_mat = materials["assignments"]
+    materials_data = parse_materials(mat_path, hydro_path=hydro_path)
+    materials_dict = materials_data["materials"]  # Dict[int, Material]
+    elem_to_mat = materials_data["assignments"]   # Dict[int, int]
 
     material_ids = [
-        elem_to_mat.get(eid, -1)   # default -1 if not assigned
+        elem_to_mat.get(eid, 0)   # default 0 if not assigned
         for eid in mesh.element_ids
     ]
 
     mesh.material_ids = material_ids
 
-    run_config = parse_run_config(hydro_path)
+    run_config_data = parse_run_config(hydro_path)
+    run_config = RunConfig(
+        dt=run_config_data["dt"],
+        total_time=run_config_data["total_time"],
+        output_interval=run_config_data["output_interval"],
+        solver=run_config_data.get("run_type")
+    )
 
     # BCs: primary from .srhhydro, with optional fallbacks inside parse_bcs_from_files
     bcs = parse_bcs_from_files(
@@ -105,7 +111,8 @@ def load_model(path: Union[str, Path]) -> SRH2DModel:
     # ---------------------------------------------------------
     model = SRH2DModel(
         mesh=mesh,
-        materials=materials,
+        materials=materials_dict,
+        material_assignments=elem_to_mat,
         bcs=bcs,
         run_config=run_config,
         model_dir=model_dir,
