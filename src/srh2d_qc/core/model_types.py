@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Optional
 from pathlib import Path
 
 
@@ -24,7 +24,8 @@ class Mesh:
 class Material:
     id: int
     roughness: float
-    type: str | None = None
+    name: Optional[str] = None   # human-readable label (from .srhmat or default)
+    # type: Optional[str] = None   # optional category if you want it
 
 @dataclass
 class BoundaryCondition:
@@ -96,7 +97,7 @@ class TimestepStabilityResult:
 
 @dataclass
 class QCResults:
-    mesh_quality: List[MeshQualityResult]
+    mesh_quality: MeshQualityResult
     bc_consistency: List[BCConsistencyResult]
     material_coverage: MaterialCoverageResult
     timestep_stability: TimestepStabilityResult
@@ -104,7 +105,12 @@ class QCResults:
 @dataclass
 class SRH2DModel:
     mesh: "Mesh"
-    materials: Dict[int, "Material"]
+    materials: Dict[int, "Material"]          # final merged materials
+    material_assignments: Dict[int, int]      # elem_id → mat_id
     bcs: List["BoundaryCondition"]
     run_config: "RunConfig"
     model_dir: Path
+
+    # # internal temporary stores (populated by parsers)
+    # material_names: Optional[Dict[int, str]] = None     # from .srhmat
+    # material_roughness: Optional[Dict[int, float]] = None  # from .srhydro

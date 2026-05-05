@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List
 
 from srh2d_qc.agent.agent_state import AgentState
+from srh2d_qc.agent.agent_tools import ModelTools
 from srh2d_qc.core.model_types import SRH2DModel
 from srh2d_qc.io.model_loader import load_model
 from srh2d_qc.qc_engine.runner import run_all_qc
@@ -33,6 +34,7 @@ class SRH2D_QCAgent:
         self.state.log("Loading SRH-2D model...")
         model = load_model(self.state.model_dir)
         self.state.model = model
+        self.model = model
         self.state.log("Model loaded successfully.")
         return model
 
@@ -46,6 +48,8 @@ class SRH2D_QCAgent:
         self.state.log("Running QC checks...")
         qc_results = run_all_qc(self.state.model)
         self.state.qc_results = qc_results
+        self.qc_results = qc_results
+        self.tools = ModelTools(self.model, self.qc_results)
         self.state.log("QC completed.")
         return qc_results
 

@@ -1,0 +1,8 @@
+numpy
+shapely
+h5py
+pyyaml
+rich
+tabulate
+openai
+python-dotenv
