@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Set
 from pathlib import Path
 
 
@@ -12,6 +12,7 @@ class Mesh:
     elements: np.ndarray       # shape (M, 4)
     element_ids: np.ndarray    # shape (M,)
     material_ids: np.ndarray   # shape (M,)
+    boundary_nodes: Set[int]   # set of boundary node IDs
 
     def get_element_nodes(self, eid):
         idx = np.where(self.element_ids == eid)[0][0]

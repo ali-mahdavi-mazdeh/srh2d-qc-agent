@@ -32,6 +32,7 @@ class SRH2DChatAgent:
             "get_element_nodes": self.qc_agent.tools.get_element_nodes,
             "get_element_type": self.qc_agent.tools.get_element_type,
             "get_mesh_node_coordinates": self.qc_agent.tools.get_mesh_node_coordinates,
+            "get_node_coordinates": self.qc_agent.tools.get_node_coordinates,
             "get_qc_summary": self.qc_agent.tools.get_qc_summary,
             "get_all_model_class": self.qc_agent.tools.get_all_model_class,
 
@@ -54,6 +55,9 @@ class SRH2DChatAgent:
         self.system_prompt = (
             "You are an SRH-2D modeling assistant. Use tools when needed. Do not invent tool names.\n"
             "Model has: mesh (nodes/elements), materials, boundary conditions (BCs), run config.\n"
+            "IMPORTANT - Token Usage:\n"
+            "  - get_all_model_class() fetches massive data and significantly increases token usage. Use ONLY if absolutely necessary.\n"
+            "  - Prefer specific tools: get_material_ids(), get_material_table(), get_node_count(), etc.\n"
             "For mesh plotting: Use plot_mesh() directly (handles all nodes internally, no token overhead).\n"
             "For custom scatter plots: get data, then use plot_scatter().\n"
             "For data export: use save_csv() or export_*_csv() tools.\n"
@@ -196,6 +200,24 @@ class SRH2DChatAgent:
                     "name": "get_mesh_node_coordinates",
                     "description": "Return all mesh node coordinates as separate X and Y lists, ready for plotting.",
                     "parameters": {"type": "object", "properties": {}, "required": []},
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_node_coordinates",
+                    "description": "Return coordinates for specific nodes. Pass a list of node IDs to get their X and Y coordinates for plotting.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "node_ids": {
+                                "type": "array",
+                                "description": "List of node IDs to retrieve coordinates for",
+                                "items": {"type": "integer"},
+                            },
+                        },
+                        "required": ["node_ids"],
+                    },
                 },
             },
             {
