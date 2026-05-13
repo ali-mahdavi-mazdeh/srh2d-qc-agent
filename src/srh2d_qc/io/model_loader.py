@@ -1,4 +1,5 @@
 from pathlib import Path
+import numpy as np
 from srh2d_qc.core.bc_utils import find_bc_elements
 from srh2d_qc.io.parsers.mesh import parse_mesh
 from srh2d_qc.io.parsers.materials import parse_materials
@@ -85,7 +86,7 @@ def load_model(path: Union[str, Path]) -> SRH2DModel:
         for eid in mesh.element_ids
     ]
 
-    mesh.material_ids = material_ids
+    mesh.material_ids = np.array(material_ids, dtype=int)
 
     run_config_data = parse_run_config(hydro_path)
     run_config = RunConfig(

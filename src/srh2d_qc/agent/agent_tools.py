@@ -137,6 +137,54 @@ class ModelTools:
             "num_nodes": len(x_coords),
         }
 
+    def get_node_coordinates(self, node_ids: List[int]) -> Dict[str, Any]:
+        """
+        Return coordinates for a specific set of nodes.
+        
+        Args:
+            node_ids: List or set of node IDs to retrieve coordinates for
+        
+        Returns:
+            {
+                "node_ids": [list of input node IDs],
+                "x_coords": [...],
+                "y_coords": [...],
+                "num_nodes": N,
+                "missing_nodes": [list of nodes not found in mesh, if any]
+            }
+        """
+        mesh = self.model.mesh
+        
+        # Convert to list if needed
+        if isinstance(node_ids, set):
+            node_ids = list(node_ids)
+        
+        x_coords = []
+        y_coords = []
+        found_node_ids = []
+        missing_nodes = []
+        
+        # Create a mapping of node_id to index for faster lookup
+        node_id_to_idx = {int(nid): i for i, nid in enumerate(mesh.node_ids)}
+        
+        for nid in node_ids:
+            if int(nid) in node_id_to_idx:
+                idx = node_id_to_idx[int(nid)]
+                x, y = mesh.nodes[idx]
+                x_coords.append(float(x))
+                y_coords.append(float(y))
+                found_node_ids.append(int(nid))
+            else:
+                missing_nodes.append(int(nid))
+        
+        return {
+            "node_ids": found_node_ids,
+            "x_coords": x_coords,
+            "y_coords": y_coords,
+            "num_nodes": len(found_node_ids),
+            "missing_nodes": missing_nodes if missing_nodes else None,
+        }
+
 
     # -----------------------------
     # QC TOOLS
