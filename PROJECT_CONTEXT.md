@@ -19,7 +19,6 @@
   - **io/**: Model loading and parsing (materials, mesh, run config, boundary conditions).
   - **llm/**: LLM-based reasoning components.
   - **qc_engine/**: QC report generation and runner logic.
-  - **reporting/**: Reporting utilities (details not shown).
   - **utils/**: General utilities (e.g., material utilities).
 
 ## Key Files and Their Roles

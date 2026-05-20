@@ -19,6 +19,7 @@ Point the agent at an SRH-2D model folder and it automatically:
 - **Parses mesh geometry** — reads `.srhgeom` files and checks cell quality metrics
 - **Reviews boundary conditions** — validates inflow/outflow coverage and consistency from `.srhhydro` and `.bc` files
 - **Validates material zones** — checks roughness assignments and flags unassigned mesh regions
+- **Checks timestep stability** — validates CFL conditions and flags potential instability
 - **Generates a structured QC report** — pass/fail results with flagged issues and recommendations
 - **Answers natural language questions** — chat directly with your model using an AI agent interface
 
@@ -63,24 +64,40 @@ print(report)
 
 ```
 src/srh2d_qc/
+├── __main__.py
+├── agent/
+│   ├── agent_core.py
+│   ├── agent_loop.py
+│   ├── agent_state.py
+│   ├── agent_tools.py
+│   ├── chat_agent.py
+│   └── fix_strategies.py
+├── checks/
+│   ├── bc_consistency.py
+│   ├── materials.py
+│   ├── mesh_quality.py
+│   └── timestep_stability.py
+├── core/
+│   ├── bc_utils.py
+│   └── model_types.py
 ├── io/
 │   ├── model_loader.py
 │   └── parsers/
-│       ├── mesh.py
 │       ├── materials.py
+│       ├── mesh.py
 │       ├── run_config.py
 │       └── boundary_conditions/
-│           ├── bcs_hydro.py
-│           ├── bcs_geom.py
 │           ├── bcs_bcfile.py
+│           ├── bcs_geom.py
+│           ├── bcs_hydro.py
 │           └── bcs_unified.py
+├── llm/
+│   └── reasoner.py
 ├── qc_engine/
-│   ├── runner.py
-│   └── report.py
-└── agent/
-    ├── agent_core.py
-    ├── agent_loop.py
-    └── agent_state.py
+│   ├── report.py
+│   └── runner.py
+└── utils/
+    └── material_utils.py
 ```
 
 ---
@@ -90,6 +107,7 @@ src/srh2d_qc/
 - [x] Mesh geometry parsing and QC checks
 - [x] Boundary condition review
 - [x] Material/roughness zone validation
+- [x] Timestep stability checks
 - [x] Natural language agent chat interface
 - [ ] Output results validation (WSE, velocity, depth rasters)
 - [ ] Mass balance and continuity error analysis
