@@ -1,72 +1,98 @@
-# srh2d-qc-agent
+# SRH-2D QC Agent
 
-A lightweight agentic AI tool for automated quality control of SRH‑2D hydraulic models.
+**Automated quality control for SRH-2D hydraulic models using agentic AI.**
 
-how to run:
+Built by [Ali Mahdavi Mazdeh, PhD](https://www.linkedin.com/in/ali-mahdavi-mazdeh) — water resources engineer specializing in computational hydraulics, HEC-RAS/SRH-2D automation, and AI-assisted modeling workflows.
 
+---
+
+## What It Does
+
+Point the agent at an SRH-2D model folder and it automatically:
+
+- **Parses mesh geometry** — reads `.srhgeom` files and checks cell quality metrics
+- **Reviews boundary conditions** — validates inflow/outflow coverage and consistency from `.srhhydro` and `.bc` files
+- **Validates material zones** — checks roughness assignments and flags unassigned mesh regions
+- **Generates a structured QC report** — pass/fail results with flagged issues and recommendations
+- **Answers natural language questions** — chat directly with your model using an AI agent interface
+
+No more manual clicking through SMS. Run QC in seconds, get a report you can include in your deliverables.
+
+---
+
+## Quick Start
+
+```bash
+pip install -e .
+```
+
+```python
 from srh2d_qc.qc_engine.runner import run_all_qc
 from srh2d_qc.qc_engine.report import generate_markdown_report
 
-results = run_all_qc("path/to/model")
+results = run_all_qc("path/to/your/srh2d/model")
 report = generate_markdown_report(results)
 print(report)
+```
 
-io/
-  model_loader.py
+---
 
-  parsers/
-    mesh.py
-      - parse_mesh
-      - parse_srhgeom_mesh (YES, goes here)
+## Project Structure
 
-    materials.py
-      - parse_materials
+```
+src/srh2d_qc/
+├── io/
+│   ├── model_loader.py
+│   └── parsers/
+│       ├── mesh.py
+│       ├── materials.py
+│       ├── run_config.py
+│       └── boundary_conditions/
+│           ├── bcs_hydro.py
+│           ├── bcs_geom.py
+│           ├── bcs_bcfile.py
+│           └── bcs_unified.py
+├── qc_engine/
+│   ├── runner.py
+│   └── report.py
+└── agent/
+    ├── agent_core.py
+    ├── agent_loop.py
+    └── agent_state.py
+```
 
-    run_config.py
-      - parse_run_config
+---
 
-    boundary_conditions/
-      bcs_hydro.py
-        - parse_bcs_from_hydro
+## Roadmap
 
-      bcs_geom.py
-        - parse_bcs_from_geom
+- [x] Mesh geometry parsing and QC checks
+- [x] Boundary condition review
+- [x] Material/roughness zone validation
+- [x] Natural language agent chat interface
+- [ ] Output results validation (WSE, velocity, depth rasters)
+- [ ] Mass balance and continuity error analysis
+- [ ] Automated PDF/Word QC report generation
+- [ ] MCP server for Claude Desktop integration
+- [ ] QGIS plugin for in-map visualization
 
-      bcs_bcfile.py
-        - parse_bcs_from_bcfile
+---
 
-      bcs_unified.py
-        - parse_bcs_from_files   (main entry point)
+## Why This Exists
 
+SRH-2D is widely used for 2D hydraulic modeling in FEMA flood studies, bridge scour analysis, and river engineering — but QC is still largely manual. This tool automates the tedious parts so engineers can focus on engineering judgment, not file parsing.
 
+---
 
+## Author
 
-src/
-  srh2d_qc/
-    __init__.py
+**Ali Mahdavi Mazdeh, PhD**  
+Water Resources Engineer | Computational Hydraulics | HEC-RAS · SRH-2D · HEC-HMS Automation | Python | AI/Agentic Workflows
 
-    io/
-      __init__.py
-      model_loader.py
+- LinkedIn: [linkedin.com/in/ali-mahdavi-mazdeh](https://www.linkedin.com/in/ali-mahdavi-mazdeh)
+- GitHub: [github.com/ali-mahdavi-mazdeh](https://github.com/ali-mahdavi-mazdeh)
 
-      parsers/
-        __init__.py
+---
 
-        mesh.py
-        materials.py
-        run_config.py
+## License
 
-        boundary_conditions/
-          __init__.py
-          bcs_hydro.py
-          bcs_geom.py
-          bcs_bcfile.py
-          bcs_unified.py
-
-
-srh2d_qc/
-    agent/
-        agent_state.py
-        agent_core.py
-        agent_loop.py
-        fix_strategies.py
+MIT License — free to use, modify, and distribute.
