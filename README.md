@@ -56,7 +56,7 @@ results = run_all_qc("path/to/your/srh2d/model")
 report = generate_markdown_report(results)
 print(report)
 ```
-> **Note:** For chat agent: look /notebooks/testing_agent_chat_Demo.ipynb
+> **For chat agent:** look /notebooks/testing_agent_chat_Demo.ipynb
 ---
 
 ## Project Structure
