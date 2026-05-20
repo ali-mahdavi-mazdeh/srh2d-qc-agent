@@ -5,6 +5,10 @@
 Built by [Ali Mahdavi Mazdeh, PhD](https://www.linkedin.com/in/ali-mahdavi-mazdeh) — water resources engineer specializing in computational hydraulics, HEC-RAS/SRH-2D automation, and AI-assisted modeling workflows.
 
 ---
+## Demo
+▶️ [Watch the SRH-2D QC Agent in action on YouTube]([https://youtube.com/your-link-here](https://youtu.be/N4AZyzLmCgY?si=RWBOtDXPY_8_nYGl)
+
+---
 
 ## What It Does
 
