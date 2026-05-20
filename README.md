@@ -1,12 +1,14 @@
 # SRH-2D QC Agent
 
-**Automated quality control for SRH-2D hydraulic models using agentic AI.**
+Automated quality control for SRH-2D hydraulic models using agentic AI.
 
 Built by [Ali Mahdavi Mazdeh, PhD](https://www.linkedin.com/in/ali-mahdavi-mazdeh) — water resources engineer specializing in computational hydraulics, HEC-RAS/SRH-2D automation, and AI-assisted modeling workflows.
 
 ---
+
 ## Demo
-▶️ [Watch the SRH-2D QC Agent in action on YouTube]([https://youtube.com/your-link-here](https://youtu.be/N4AZyzLmCgY?si=RWBOtDXPY_8_nYGl)
+
+▶️ [Watch the SRH-2D QC Agent in action on YouTube](https://youtu.be/N4AZyzLmCgY?si=qcxfM4sMf_Yn5ITD)
 
 ---
 
@@ -21,6 +23,22 @@ Point the agent at an SRH-2D model folder and it automatically:
 - **Answers natural language questions** — chat directly with your model using an AI agent interface
 
 No more manual clicking through SMS. Run QC in seconds, get a report you can include in your deliverables.
+
+---
+
+## Requirements
+
+To use the AI chat interface, you need an OpenAI API key.
+
+1. Get your key at [platform.openai.com](https://platform.openai.com)
+2. Copy `.env.example` to `.env` in the root folder
+3. Add your key:
+
+```
+OPENAI_API_KEY=your-key-here
+```
+
+> **Note:** The QC checks (mesh, boundary conditions, materials) run without an API key. Only the AI chat interface requires one.
 
 ---
 
@@ -89,7 +107,7 @@ SRH-2D is widely used for 2D hydraulic modeling in FEMA flood studies, bridge sc
 
 ## Author
 
-**Ali Mahdavi Mazdeh, PhD**  
+**Ali Mahdavi Mazdeh, PhD**
 Water Resources Engineer | Computational Hydraulics | HEC-RAS · SRH-2D · HEC-HMS Automation | Python | AI/Agentic Workflows
 
 - LinkedIn: [linkedin.com/in/ali-mahdavi-mazdeh](https://www.linkedin.com/in/ali-mahdavi-mazdeh)
