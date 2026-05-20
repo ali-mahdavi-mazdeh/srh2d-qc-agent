@@ -41,6 +41,8 @@ OPENAI_API_KEY=your-key-here
 
 > **Note:** The QC checks (mesh, boundary conditions, materials) run without an API key. Only the AI chat interface requires one.
 
+For a working example of the chat agent interface, see the demo notebook: [`notebooks/testing_agent_chat_Demo.ipynb`](notebooks/testing_agent_chat_Demo.ipynb)
+
 ---
 
 ## Quick Start
