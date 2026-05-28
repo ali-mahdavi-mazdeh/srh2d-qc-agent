@@ -2,3 +2,5 @@
 *.pyc
 __pycache__/
 .ipynb_checkpoints/
+tests/model_2
+tests/model_3
